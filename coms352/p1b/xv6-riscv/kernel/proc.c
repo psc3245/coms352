@@ -421,14 +421,14 @@ kwait(uint64 addr)
 uint64
 sys_startLogging(void) {
   LOGGING_ENABLED = 1;
-  printf("Logging Started\n");
+  printf("logging Started\n");
   return 0;
 }
 
 uint64
 sys_stopLogging(void) {
   LOGGING_ENABLED = 0;
-  printf("Logging Stopped\n");
+  printf("logging Stopped\n");
   return 0;
 }
 
@@ -454,7 +454,7 @@ sys_nice(void) {
       
       p->nice = nice_val;
       if (LOGGING_ENABLED) {
-        printf("Nice set to %d for %d\n", p->nice, p->pid);
+        printf("nice set to %d for %d\n", p->nice, p->pid);
       }
 
       release(&p->lock);
@@ -497,6 +497,9 @@ scheduler(void)
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
+        if (LOGGING_ENABLED) {
+          printf("running %d at %d\n", p->pid, ticks);
+        }
         p->state = RUNNING;
         c->proc = p;
         swtch(&c->context, &p->context);
