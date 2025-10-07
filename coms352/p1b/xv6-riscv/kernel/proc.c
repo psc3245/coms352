@@ -6,6 +6,12 @@
 #include "proc.h"
 #include "defs.h"
 
+// Macros to make finding max and min of two ints easier
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+int LOGGING_ENABLED;
+
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
@@ -51,6 +57,7 @@ procinit(void)
   
   initlock(&pid_lock, "nextpid");
   initlock(&wait_lock, "wait_lock");
+  LOGGING_ENABLED = 0;
   for(p = proc; p < &proc[NPROC]; p++) {
       initlock(&p->lock, "proc");
       p->state = UNUSED;
@@ -411,6 +418,55 @@ kwait(uint64 addr)
   }
 }
 
+uint64
+sys_startLogging(void) {
+  LOGGING_ENABLED = 1;
+  printf("Logging Started\n");
+  return 0;
+}
+
+uint64
+sys_stopLogging(void) {
+  LOGGING_ENABLED = 0;
+  printf("Logging Stopped\n");
+  return 0;
+}
+
+uint64
+sys_nice(void) {
+  int pid;
+  int inc;
+  struct proc *p;
+
+  // If either argint call fails, we didn't get the variable, so return
+  if(argint(0, &pid) < 0 || argint(1, &inc) < 0) return -1;
+
+  int nice_val;
+  // Loop 
+  for(p = proc; p < &proc[NPROC]; p++) {
+    // chat added this, idk if it will matter later
+    acquire(&p->lock);
+    if(p->pid == pid && p->state != UNUSED) {
+      nice_val = p->nice + inc;
+      // Check it is within bounds and set
+      nice_val = MAX(-20, nice_val);
+      nice_val = MIN(19, nice_val);
+      
+      p->nice = nice_val;
+      if (LOGGING_ENABLED) {
+        printf("Nice set to %d for %d\n", p->nice, p->pid);
+      }
+
+      release(&p->lock);
+      return nice_val;
+    }
+    else {
+      release(&p->lock);
+    }
+  }
+  // Failure, process not found
+  return -1;
+}
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
