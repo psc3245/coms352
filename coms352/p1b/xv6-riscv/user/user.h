@@ -24,6 +24,9 @@ int getpid(void);
 char* sys_sbrk(int,int);
 int pause(int);
 int uptime(void);
+void startLogging(void);
+void stopLogging(void);
+int nice(int pid, int inc);
 
 // ulib.c
 int stat(const char*, struct stat*);
