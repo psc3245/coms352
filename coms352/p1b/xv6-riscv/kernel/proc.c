@@ -175,6 +175,7 @@ freeproc(struct proc *p)
   p->chan = 0;
   p->killed = 0;
   p->xstate = 0;
+  p->nice = 0;
   p->state = UNUSED;
 }
 
@@ -438,8 +439,8 @@ sys_nice(void) {
   int inc;
   struct proc *p;
 
-  // If either argint call fails, we didn't get the variable, so return
-  if(argint(0, &pid) < 0 || argint(1, &inc) < 0) return -1;
+  argint(0, &pid);
+  argint(1, &inc);
 
   int nice_val;
   // Loop 
