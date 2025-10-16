@@ -143,6 +143,7 @@ UPROGS=\
 	$U/_forphan\
 	$U/_dorphan\
 	$U/_logtest\
+	# Add a system call for log test
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
@@ -163,6 +164,8 @@ GDBPORT = $(shell expr `id -u` % 5000 + 25000)
 QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::$(GDBPORT)"; \
 	else echo "-s -p $(GDBPORT)"; fi)
+
+# Ensure we are emulating a single core CPU
 ifndef CPUS
 CPUS := 1
 endif

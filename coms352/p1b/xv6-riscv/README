@@ -9,7 +9,7 @@
 - Updated scheduler to log 
 	- process running at each tick
 	- when nice values are updated
-- Added system call * logtest * that shows the new logging and nice features.
+- Added system call logtest that shows the new logging and nice features.
 
 ### Issues / Flaws Currently Known:
 There are no flaws or issues currently known within the codebase.

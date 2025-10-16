@@ -10,6 +10,7 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
+// Flag to indicate if logging is on or not
 int LOGGING_ENABLED;
 
 struct cpu cpus[NCPU];
@@ -57,6 +58,7 @@ procinit(void)
   
   initlock(&pid_lock, "nextpid");
   initlock(&wait_lock, "wait_lock");
+  // Initialize logging flag to false
   LOGGING_ENABLED = 0;
   for(p = proc; p < &proc[NPROC]; p++) {
       initlock(&p->lock, "proc");
@@ -419,6 +421,7 @@ kwait(uint64 addr)
   }
 }
 
+// Implementation of system call to Start Logging
 uint64
 sys_startLogging(void) {
   LOGGING_ENABLED = 1;
@@ -426,6 +429,7 @@ sys_startLogging(void) {
   return 0;
 }
 
+// Implementation of system call to Start Logging
 uint64
 sys_stopLogging(void) {
   LOGGING_ENABLED = 0;
@@ -433,35 +437,38 @@ sys_stopLogging(void) {
   return 0;
 }
 
+// Implementation of system call to increment nice value
 uint64
 sys_nice(void) {
   int pid;
   int inc;
   struct proc *p;
 
+  // Get pid and inc values from args
   argint(0, &pid);
   argint(1, &inc);
 
   int nice_val;
-  // Loop 
+  // Loop through processes array until we find a matching pid
   for(p = proc; p < &proc[NPROC]; p++) {
-    // chat added this, idk if it will matter later
+    // Acquire a lock on the process to prevent race condition changes in process struct
     acquire(&p->lock);
     if(p->pid == pid && p->state != UNUSED) {
       nice_val = p->nice + inc;
       // Check it is within bounds and set
       nice_val = MAX(-20, nice_val);
       nice_val = MIN(19, nice_val);
-      
       p->nice = nice_val;
+
+      // Log changes if necessary, release lock, and return nice val
       if (LOGGING_ENABLED) {
         printf("nice set to %d for %d\n", p->nice, p->pid);
       }
-
       release(&p->lock);
       return nice_val;
     }
     else {
+      // This process is not the one we are looking for, release lock
       release(&p->lock);
     }
   }
@@ -498,6 +505,8 @@ scheduler(void)
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
+        
+        // Log scheduling changes if necessary
         if (LOGGING_ENABLED) {
           printf("running %d at %d\n", p->pid, ticks);
         }

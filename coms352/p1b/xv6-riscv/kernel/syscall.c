@@ -101,6 +101,7 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
+// Added system calls as indicated by project outline
 extern uint64 sys_startLogging(void);
 extern uint64 sys_stopLogging(void);
 extern uint64 sys_nice(void);
@@ -129,6 +130,7 @@ static uint64 (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+// Once again, added sys calls as indicated by project outline
 [SYS_startLogging] sys_startLogging,
 [SYS_stopLogging] sys_stopLogging,
 [SYS_nice] sys_nice,

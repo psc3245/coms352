@@ -42,6 +42,7 @@ entry("getpid");
 entry("sbrk");
 entry("pause");
 entry("uptime");
+# Added system calls to pearl script to allow user space to access them
 entry("startLogging");
 entry("stopLogging");
 entry("nice");

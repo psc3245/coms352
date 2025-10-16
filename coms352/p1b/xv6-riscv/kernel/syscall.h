@@ -20,6 +20,7 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
+// Added system calls numbers as indicated by project outline
 #define SYS_startLogging 22
 #define SYS_stopLogging 23
 #define SYS_nice 24
