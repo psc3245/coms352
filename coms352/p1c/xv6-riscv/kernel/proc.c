@@ -528,6 +528,78 @@ scheduler(void)
   }
 }
 
+void
+scheduler_rrsp(void)
+{
+ struct proc *p;
+ struct cpu *c = mycpu();
+
+ c->proc = 0;
+ for(;;){
+   intr_on();
+   intr_off();
+
+   int priority = -1;
+   for(p = proc; p < &proc[NPROC]; p++) {
+     acquire(&p->lock);
+     if (p->state == RUNNABLE) {
+       int temp = 20 - p->nice;
+       if (temp > priority) {
+         priority = temp;
+       }
+     }
+     release(&p->lock);
+   }
+
+   if (priority == -1) {
+     asm volatile("wfi");
+     continue;
+   }
+
+   int found = 0;
+   for(p = proc; p < &proc[NPROC]; p++) {
+     acquire(&p->lock);
+
+     int current_priority = 20 - p->nice;
+
+     if(p->state == RUNNABLE && current_priority == priority) {
+
+       if (LOGGING_ENABLED) {
+         printf("running %d at %d\n", p->pid, ticks);
+       }
+
+       p->state = RUNNING;
+       c->proc = p;
+       swtch(&c->context, &p->context);
+
+       c->proc = 0;
+       found = 1;
+     }
+     release(&p->lock);
+   }
+
+   if(found == 0) {
+     asm volatile("wfi");
+   }
+ }
+}
+
+
+void
+scheduler_mlfq(void)
+{
+  for(;;){
+     // Enable interrupts on this core.
+     intr_on();
+     intr_off();
+     
+     // TODO: Implement MLFQ logic here (Phase 3)
+     
+     // For now, just wait for an interrupt
+     asm volatile("wfi");
+   }
+}
+
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this

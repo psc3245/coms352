@@ -41,5 +41,11 @@ main()
     plicinithart();   // ask PLIC for device interrupts
   }
 
-  scheduler();        
+  #if SCHEDULER == SCHED_RR
+    scheduler();
+  #elif SCHEDULER == SCHED_RRSP
+    scheduler_rrsp();
+  #elif SCHEDULER == SCHED_MLFQ
+    scheduler_mlfq();
+  #endif        
 }

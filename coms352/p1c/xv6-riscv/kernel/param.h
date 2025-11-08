@@ -13,3 +13,9 @@
 #define MAXPATH      128   // maximum file path name
 #define USERSTACK    1     // user stack pages
 
+// Create a definition for each of the scheduler choices
+#define SCHED_RR		0
+#define SCHED_RRSP		1
+#define SCHED_MLFQ		2
+// Choose which scheduling algorithm we will actually use
+#define SCHEDULER		SCHED_RRSP
