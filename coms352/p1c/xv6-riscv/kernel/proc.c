@@ -155,8 +155,22 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
+  p->queue_level = initqueuelevel(p->nice);
+
   return p;
 }
+
+int
+initqueuelevel(int nice) {
+  if (nice <= -10) {
+    return 2;
+  }
+  if (nice <= 10) {
+    return 1;
+  }
+  return 0;
+}
+
 
 // free a proc structure and the data hanging from it,
 // including user pages.
