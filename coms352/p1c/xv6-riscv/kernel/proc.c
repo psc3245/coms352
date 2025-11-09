@@ -155,20 +155,24 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
-  p->queue_level = initqueuelevel(p->nice);
+  p->nice = 0;
+  initqueuelevel(p);
 
   return p;
 }
 
-int
-initqueuelevel(int nice) {
-  if (nice <= -10) {
-    return 2;
+void
+initqueuelevel(struct proc* p) {
+  if (p->nice <= -10) {
+    p->queue_level = 2;
   }
-  if (nice <= 10) {
-    return 1;
+  else if (p->nice <= 10) {
+    p->queue_level = 1;
   }
-  return 0;
+  else {
+    p->queue_level = 0;
+  }
+  p->runtime_in_queue = 0;
 }
 
 
@@ -321,6 +325,8 @@ kfork(void)
 
   acquire(&np->lock);
   np->state = RUNNABLE;
+  np->nice = p->nice;
+  initqueuelevel(np);
   release(&np->lock);
 
   return pid;
@@ -473,6 +479,7 @@ sys_nice(void) {
       nice_val = MAX(-20, nice_val);
       nice_val = MIN(19, nice_val);
       p->nice = nice_val;
+      initqueuelevel(p);
 
       // Log changes if necessary, release lock, and return nice val
       if (LOGGING_ENABLED) {

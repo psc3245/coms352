@@ -106,4 +106,5 @@ struct proc {
   char name[16];               // Process name (debugging)
   int nice;                    // Nice Value (Scheduling Priority)
   int queue_level;             // MLFQ Queue level - 2 (highest), 1, 0 (lowest)
+  int runtime_in_queue;        // Runtime at the current queue level (in ticks)
 };
