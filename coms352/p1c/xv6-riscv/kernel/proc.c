@@ -617,20 +617,26 @@ scheduler_mlfq(void)
      // Enable interrupts on this core.
      intr_on();
      intr_off();
+     acquire(&tickslock);
+     uint current_ticks = ticks;
+     uint64 last_boost = last_boost_time;
+     release(&tickslock);
 
-     if (ticks - last_boost_time >= 60) {
+     if (current_ticks - last_boost >= 60) {
       for(p = proc; p < &proc[NPROC]; p++) {
         acquire(&p->lock);
         initqueuelevel(p);
         release(&p->lock);
       }
-      last_boost_time = ticks;
+      acquire(&tickslock);
+      last_boost_time = current_ticks;
+      release(&tickslock);
      }
      
-     // TODO: Implement MLFQ logic here (Phase 3)
+     
      int found = 0;
      int level = 2;
-     while (found == 0 && level > -1) {
+     while (level > -1) {
       for(p = proc; p < &proc[NPROC]; p++) {
         acquire(&p->lock);
         if (p->queue_level == level && p->state == RUNNABLE) {
@@ -650,6 +656,10 @@ scheduler_mlfq(void)
         release(&p->lock);
       }
       level --;
+      if (found == 1) {
+        level = 2;
+        found = 0;
+      }
     }
       if(found == 0) {
         // nothing to run; stop running on this core until an interrupt.
@@ -692,6 +702,16 @@ yield(void)
 {
   struct proc *p = myproc();
   acquire(&p->lock);
+  #if SCHEDULER == SCHED_MLFQ
+    p->runtime_in_queue ++;
+    if(p->queue_level == 2 && p->runtime_in_queue >= 1) {
+      p->queue_level = 1; // Demote to Q1
+      p->runtime_in_queue = 0;
+    } else if(p->queue_level == 1 && p->runtime_in_queue >= 10) {
+      p->queue_level = 0; // Demote to Q0
+      p->runtime_in_queue = 0;
+    }
+  #endif
   p->state = RUNNABLE;
   sched();
   release(&p->lock);
