@@ -13,6 +13,8 @@
 // Flag to indicate if logging is on or not
 int LOGGING_ENABLED;
 
+static int last_boost_time = 0;
+
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
@@ -564,9 +566,9 @@ scheduler_rrsp(void)
    for(p = proc; p < &proc[NPROC]; p++) {
      acquire(&p->lock);
      if (p->state == RUNNABLE) {
-       int temp = 20 - p->nice;
-       if (temp > priority) {
-         priority = temp;
+       int current_priority = 20 - p->nice;
+       if (current_priority > priority) {
+         priority = current_priority;
        }
      }
      release(&p->lock);
@@ -609,38 +611,46 @@ scheduler_rrsp(void)
 void
 scheduler_mlfq(void)
 {
+  struct proc *p;
+  struct cpu *c = mycpu();
   for(;;){
      // Enable interrupts on this core.
      intr_on();
      intr_off();
+
+     if (ticks - last_boost_time >= 60) {
+      for(p = proc; p < &proc[NPROC]; p++) {
+        acquire(&p->lock);
+        initqueuelevel(p);
+        release(&p->lock);
+      }
+      last_boost_time = ticks;
+     }
      
      // TODO: Implement MLFQ logic here (Phase 3)
      int found = 0;
+     int level = 2;
+     while (found == 0 && level > -1) {
       for(p = proc; p < &proc[NPROC]; p++) {
         acquire(&p->lock);
-        if (p->queue_level == 2) {
-          
-        }
-        if(p->state == RUNNABLE) {
-          // Switch to chosen process.  It is the process's job
-          // to release its lock and then reacquire it
-          // before jumping back to us.
-          
-          // Log scheduling changes if necessary
+        if (p->queue_level == level && p->state == RUNNABLE) {
+
           if (LOGGING_ENABLED) {
             printf("running %d at %d\n", p->pid, ticks);
           }
-          p->state = RUNNING;
-          c->proc = p;
-          swtch(&c->context, &p->context);
 
-          // Process is done running for now.
-          // It should have changed its p->state before coming back.
-          c->proc = 0;
-          found = 1;
+           p->state = RUNNING;
+           c->proc = p;
+
+           swtch(&c->context, &p->context);
+
+           c->proc = 0;
+           found = 1;
         }
         release(&p->lock);
       }
+      level --;
+    }
       if(found == 0) {
         // nothing to run; stop running on this core until an interrupt.
         asm volatile("wfi");
