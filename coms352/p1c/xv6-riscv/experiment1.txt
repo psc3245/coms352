@@ -1,0 +1,19 @@
+Experiment 1: Compare the fairness for CPU-bound tasks that have equal nice values.
+
+Create a utility program, for example, user/fairtest.c (don’t forget to add
+$U/_fairtest to UPROGS in Makefile), that uses fork to create 4 child processes. 
+
+Make the child processes CPU-bound (e.g., use large loops that keep them on the CPU for a long time).
+
+Turn on logging (See project iteration B) and record the context switches of the processes.
+
+In a text document called experiement1.txt at the top level of xv6, include the following:
+
+• A clear explanation of how the 3 schedulers should treat processes with the same nice
+values. What do you expect the experiment to show?
+
+• Example output from running the experiment with each of the 3 schedulers (the original
+RR scheduler and the two new ones you added)
+
+• An explanation of why you think the experiment demonstrates (or doesn’t demonstrate)
+your 2 new schedulers are working correctly

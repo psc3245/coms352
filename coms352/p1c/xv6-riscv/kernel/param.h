@@ -18,4 +18,4 @@
 #define SCHED_RRSP		1
 #define SCHED_MLFQ		2
 // Choose which scheduling algorithm we will actually use
-#define SCHEDULER		SCHED_RRSP
+#define SCHEDULER		SCHED_MLFQ

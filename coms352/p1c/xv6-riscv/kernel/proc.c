@@ -701,7 +701,9 @@ void
 yield(void)
 {
   struct proc *p = myproc();
+
   acquire(&p->lock);
+
   #if SCHEDULER == SCHED_MLFQ
     p->runtime_in_queue ++;
     if(p->queue_level == 2 && p->runtime_in_queue >= 1) {
@@ -712,6 +714,7 @@ yield(void)
       p->runtime_in_queue = 0;
     }
   #endif
+    
   p->state = RUNNABLE;
   sched();
   release(&p->lock);
