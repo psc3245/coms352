@@ -551,19 +551,25 @@ scheduler(void)
   }
 }
 
+// Round Robin Scheduler with Strict Priority
+// Take turns running but use strict nice level priority rules
 void
 scheduler_rrsp(void)
 {
+  // Same setup as usual
  struct proc *p;
  struct cpu *c = mycpu();
-
  c->proc = 0;
  for(;;){
    intr_on();
    intr_off();
 
+   // Since priority is calculated as 20 - nice, the minimum value is 0.
+   // -1 becomes a good starting value so we can tell if we did not find a process
    int priority = -1;
    for(p = proc; p < &proc[NPROC]; p++) {
+    // Check if a process is runnable, then calculate its priority level
+    // We will run all processes that have equal to the greatest priority level of the array
      acquire(&p->lock);
      if (p->state == RUNNABLE) {
        int current_priority = 20 - p->nice;
@@ -573,24 +579,28 @@ scheduler_rrsp(void)
      }
      release(&p->lock);
    }
-
+   // No process runnable
    if (priority == -1) {
      asm volatile("wfi");
      continue;
    }
 
+   // Now that we have computed the highest priority level, run processes that exist at that level
    int found = 0;
    for(p = proc; p < &proc[NPROC]; p++) {
      acquire(&p->lock);
 
      int current_priority = 20 - p->nice;
 
+     // As long as it is runnable and has correct priority, it can run
+     // We can use a strict == over a >= because we already know it is the maximum value
+     // because of the previous for loop, so it must match.
      if(p->state == RUNNABLE && current_priority == priority) {
 
+      // Same logging and switching logic as all schedulers
        if (LOGGING_ENABLED) {
          printf("running %d at %d\n", p->pid, ticks);
        }
-
        p->state = RUNNING;
        c->proc = p;
        swtch(&c->context, &p->context);
@@ -613,6 +623,7 @@ scheduler_mlfq(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
+  c->proc = 0;
   // Same continuous for loop
   for(;;){
      // Enable interrupts on this core.
@@ -648,10 +659,11 @@ scheduler_mlfq(void)
         acquire(&p->lock);
         if (p->queue_level == level && p->state == RUNNABLE) {
 
+        // Same logging and switching logic as all schedulers
+
           if (LOGGING_ENABLED) {
             printf("running %d at %d\n", p->pid, ticks);
           }
-
            p->state = RUNNING;
            c->proc = p;
 
