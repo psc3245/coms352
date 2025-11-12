@@ -24,23 +24,11 @@ void io_bound_loop() {
  * Creates 4 children:
  * 2 CPU-bound (long loop)
  * 2 I/O-bound (sleep loop)
- *
- * Expected behavior:
- * - RR & RRSP: The 2 CPU-bound processes will dominate the CPU. The I/O-bound
- * processes will sleep, wake up, run briefly, and sleep again.
- * - MLFQ: This is the key test. The CPU-bound processes will use their
- * quanta and be demoted to Q0. The I/O-bound processes will call sleep(),
- * which is a *voluntary* release of the CPU (not a preemption).
- * They will *not* be demoted. They will stay in Q1, get high priority
- * every time they wake up, run quickly, and sleep again.
- * The I/O processes should finish *much* faster.
  */
 int
 main(int argc, char *argv[])
 {
   printf("Starting I/O vs CPU test (2 CPU-bound, 2 I/O-bound)...\n");
-
-  // startLogging();
 
   for (int i = 0; i < 4; i++) {
     int pid = fork();
@@ -68,8 +56,6 @@ main(int argc, char *argv[])
   for (int i = 0; i < 4; i++) {
     wait(0);
   }
-
-  // stopLogging();
   
   printf("I/O vs CPU test complete.\n");
   exit(0);

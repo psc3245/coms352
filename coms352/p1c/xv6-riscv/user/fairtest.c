@@ -14,13 +14,6 @@ void cpu_bound_loop() {
  * fairtest.c
  * Tests the fairness of the schedulers.
  * Creates 4 identical CPU-bound child processes.
- *
- * Expected behavior:
- * - RR: All 4 processes should share CPU time roughly equally in a round-robin fashion.
- * - RRSP: All processes have the same default nice value (0), so they have the same
- * priority. Should behave identically to RR.
- * - MLFQ: All processes start in Q1 (nice=0). They will use their quanta and be
- * demoted to Q0, where they will run round-robin.
  */
 int
 main(int argc, char *argv[])
