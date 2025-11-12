@@ -1,0 +1,18 @@
+Experiment 2 is nicetest.c, which creates four processes.
+
+Two processes are given nice values of 15 and two are given nice values of -15.
+
+Expected Behavior for each Scheduler:
+
+RR:
+- Ignores nice values. All processes share time equally.
+
+RRSP:
+- The two processes with higher priority (nice of -15) will dominate the CPU.
+- Since all processes are always runnable, the only thing that matters is priority.
+- The high priority processes (nice of -15) will finish first and then the low priority processes (nice of 15) will finish second.
+
+MLFQ:
+- Nice values of 15 and -15 puts these processes at queue 0 and queue 2 respectively.
+- The Q2 processes will run first, then be demoted to Q1, run again, then be demoted to Q0.
+- Once all processes are in Q0, it will be round robin. 

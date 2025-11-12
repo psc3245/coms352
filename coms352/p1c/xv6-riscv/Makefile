@@ -146,6 +146,7 @@ UPROGS=\
 	$U/_fairtest\
 	$U/_nicetest\
 	$U/_ioboundtest\
+	# Added the tests to user programs
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

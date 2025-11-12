@@ -40,7 +40,9 @@ main()
     trapinithart();   // install kernel trap vector
     plicinithart();   // ask PLIC for device interrupts
   }
-
+  // If statement to set the schedule properly
+  // Used #if over if because (according to some googling)
+  // #if will be removed by compiler if it is seen as unnecessary
   #if SCHEDULER == SCHED_RR
     scheduler();
   #elif SCHEDULER == SCHED_RRSP

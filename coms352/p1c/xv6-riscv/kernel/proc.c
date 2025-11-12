@@ -13,6 +13,7 @@
 // Flag to indicate if logging is on or not
 int LOGGING_ENABLED;
 
+// Static variable to keep track of how long it has been since we priority boosted
 static int last_boost_time = 0;
 
 struct cpu cpus[NCPU];
@@ -157,6 +158,8 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
+  // Ensure the nice value is initialized to 0 (neutral)
+  // And call the init queue level function to properly assign queue
   p->nice = 0;
   initqueuelevel(p);
 

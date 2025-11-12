@@ -2,7 +2,7 @@
 #include "kernel/stat.h"
 #include "user/user.h"
 
-// Runs a CPU-intensive loop
+// Hog the CPU with a very long loop
 void cpu_bound_loop() {
   long i;
   for (i = 0; i < 2000000000; i++) {
@@ -27,8 +27,7 @@ main(int argc, char *argv[])
 {
   printf("Starting fairness test (4 CPU-bound processes)...\n");
 
-  // Start logging. You can also do this from the xv6 shell.
-  // startLogging();
+  startLogging();
 
   for (int i = 0; i < 4; i++) {
     int pid = fork();
@@ -48,9 +47,6 @@ main(int argc, char *argv[])
   for (int i = 0; i < 4; i++) {
     wait(0);
   }
-
-  // Stop logging.
-  // stopLogging();
 
   printf("Fairness test complete.\n");
   exit(0);

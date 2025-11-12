@@ -1,0 +1,21 @@
+Experiment 3 is ioboundtest.c
+
+This experiment seeks to test how the schedulers will behave with two separate types of processes, two processes that are dependent on CPU usage and two processes that are dependent on I/O usage.
+
+Two processes will go through a long loop and two will call the pause function to simulate waiting for I/O.
+
+Expected Behavior for each Scheduler:
+
+RR:
+- The CPU bound processes will dominate the CPU because they can work while I/O processes pause.
+- When I/O processes return, they will run for their runtime then sleep again and the CPU bound processes will continue to dominate CPU usage.
+
+RRSP:
+- Since all processes have a default nice value of 0, this scheduler's behavior will match the behavior of RR scheduler.
+
+MLFQ:
+- All processes will start in Q1 because of default nice value.
+- The CPU bound processes will run and eventually be demoted ot Q0.
+- The I/O processes will remain in Q1 because the pause function is a voluntary release of the CPU, so it will not demote them. 
+- This means they will get high priority every time they wake up.
+- The I/O bound processes will finish significantly faster than the CPU bound processes because of their ability to remain in the higher queue. 
