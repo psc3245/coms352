@@ -163,6 +163,8 @@ found:
   return p;
 }
 
+// A simple function that takes a process pointer and assignes it the correct queue level
+// It also sets the runtime in the queue to 0 to keep things fresh
 void
 initqueuelevel(struct proc* p) {
   if (p->nice <= -10) {
