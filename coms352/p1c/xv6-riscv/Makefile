@@ -144,6 +144,8 @@ UPROGS=\
 	$U/_dorphan\
 	$U/_logtest\
 	$U/_fairtest\
+	$U/_nicetest\
+	$U/_ioboundtest\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
