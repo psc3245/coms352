@@ -607,16 +607,18 @@ scheduler_rrsp(void)
  }
 }
 
-
+// Multi Level Feedback Queue Scheduler
 void
 scheduler_mlfq(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
+  // Same continuous for loop
   for(;;){
      // Enable interrupts on this core.
      intr_on();
      intr_off();
+     // Acquire a lock to perform ticks calculations
      acquire(&tickslock);
      uint current_ticks = ticks;
      uint64 last_boost = last_boost_time;
@@ -624,10 +626,12 @@ scheduler_mlfq(void)
 
      if (current_ticks - last_boost >= 60) {
       for(p = proc; p < &proc[NPROC]; p++) {
+        // Ensure that each process is in the proper queue
         acquire(&p->lock);
         initqueuelevel(p);
         release(&p->lock);
       }
+      // Reset last boost time
       acquire(&tickslock);
       last_boost_time = current_ticks;
       release(&tickslock);
@@ -636,6 +640,9 @@ scheduler_mlfq(void)
      
      int found = 0;
      int level = 2;
+     // While loop to represent the level we are on
+     // Start at top level and check the process array for a top level queue process
+     // Only move on to the next level once we have checked for the current level priority queue
      while (level > -1) {
       for(p = proc; p < &proc[NPROC]; p++) {
         acquire(&p->lock);
@@ -655,12 +662,16 @@ scheduler_mlfq(void)
         }
         release(&p->lock);
       }
+      // If we made it through the whole array and do not have a process to run,
+      // decrement the level and check the next priority queue
       level --;
       if (found == 1) {
         level = 2;
         found = 0;
       }
     }
+    // If we have ended the while loop then there are NO processes to run across ALL levels
+    // So we can just wait until there is a process
       if(found == 0) {
         // nothing to run; stop running on this core until an interrupt.
         asm volatile("wfi");
