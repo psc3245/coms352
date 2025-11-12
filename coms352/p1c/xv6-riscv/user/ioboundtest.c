@@ -5,7 +5,7 @@
 // Runs a CPU-intensive loop
 void cpu_bound_loop() {
   long i;
-  for (i = 0; i < 2000000000; i++) {
+  for (i = 0; i < 20000000000; i++) {
     asm volatile("nop");
   }
 }

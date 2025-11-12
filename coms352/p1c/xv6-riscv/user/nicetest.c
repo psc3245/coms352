@@ -42,13 +42,13 @@ main(int argc, char *argv[])
       // Child process
       if (i < 2) {
         // High priority processes
-        nice(getpid(), -5); // Set nice value to -5 (Priority 25)
+        nice(getpid(), -15); // Set nice value to -5 (Priority 25)
         printf("High-priority process (PID: %d) starting CPU loop.\n", getpid());
         cpu_bound_loop();
         printf("High-priority process (PID: %d) finished.\n", getpid());
       } else {
         // Low priority processes
-        nice(getpid(), 5); // Set nice value to 5 (Priority 15)
+        nice(getpid(), 15); // Set nice value to 5 (Priority 15)
         printf("Low-priority process (PID: %d) starting CPU loop.\n", getpid());
         cpu_bound_loop();
         printf("Low-priority process (PID: %d) finished.\n", getpid());
