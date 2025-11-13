@@ -2,53 +2,88 @@
 ## netid: psc3245
 
 ### Updates: 
-- Added systems calls to start and stop logging features
-- Implemented nice values from Linux CFS
-	- Processes now carry a "nice" value, indicating priority.
-	- Processes with higher nice values take priority over those with lower ones.
-- Updated scheduler to log 
-	- process running at each tick
-	- when nice values are updated
-- Added system call logtest that shows the new logging and nice features.
 
-### Issues / Flaws Currently Known:
+#### Added Two New Schdeulers:
+
+##### 1. Round-Robin with Strict Priorities (RRSP)
+
+- A simple priority scheduler that adheres to the following rules:
+
+	- Rule 1: If Priority(A) > Priority(B), process A runs and process B does not.
+
+	- Rule 2: If Priority(A) == Priority(B), processes A and B run in a standard round-robin fashion.
+
+	- Rule 3: Priority is calculated from the process's nice value: Priority = 20 - nice.
+
+This scheduler uses strict priority to force all low priority processes to wait until all high priority processes are finished or not runnable.
+
+#### 2. Multi-Level Feedback Queue (MLFQ)
+
+- A more complex scheduler that implements a system of three priority queues (Q2, Q1, Q0) to favor I/O-bound processes and prevent starvation.
+
+	- Queues:
+
+		- Q2 (Highest): nice <= -10, Quantum = 1 tick
+
+		- Q1 (Middle): -10 < nice <= 10, Quantum = 10 ticks (Default queue)
+
+		- Q0 (Lowest): nice > 10, Quantum = 15 ticks
+
+	- Rules:
+
+		- Strict Priority: Q2 processes run before Q1; Q1 runs before Q0.
+
+		- Round-Robin: Processes on the same queue level run in round-robin.
+
+		- Starting Queue: New processes are assigned a queue based on their nice value.
+
+		- Demotion: If a process uses its entire time quantum (timer interrupt while on CPU), it is demoted to the next lower queue.
+
+		- Priority Boost: Every 60 ticks, all processes in the system are moved back to their original starting queues.
+
+		- Nice Change: If nice() is called, the process is immediately moved to the correct starting queue for its new nice value.
+
+#### How to Select a Scheduler
+
+To change the active scheduler, edit the SCHEDULER macro in kernel/param.h:
+
+##### kernel/param.h
+
+// Create a definition for each of the scheduler choices
+#define SCHED_RR		0
+#define SCHED_RRSP		1
+#define SCHED_MLFQ		2
+// Choose which scheduling algorithm we will actually use
+#define SCHEDULER		SCHED_RRSP // <-- CHANGE THIS VALUE
+
+
+
+List of Added Files
+
+- user/fairtest.c:
+
+	- New test program for Experiment 1 (fairness).
+
+- user/nicetest.c:
+
+	- New test program for Experiment 2 (priority).
+
+- user/ioboundtest.c:
+
+	- New test program for Experiment 3 (I/O vs. CPU).
+
+
+#### Experiment Reports
+
+experiment1.txt: Analysis of the fairtest results.
+
+experiment2.txt: Analysis of the nicetest results.
+
+experiment3.txt: Analysis of the ioboundtest results.
+
+
+#### Issues / Flaws Currently Known:
 There are no flaws or issues currently known within the codebase.
-
-### Sample Output:
-$ logtest
-logging Started
-running 4 at 31
-nice set to 10 for 4
-running 4 at 32
-running 4 at 33
-running 4 at 34
-running 4 at 35
-running 4 at 36
-running 4 at 37
-running 4 at 38
-running 4 at 39
-running 4 at 40
-running 4 at 41
-running 4 at 42
-running 4 at 43
-running 4 at 44
-running 4 at 45
-running 4 at 46
-running 4 at 47
-running 4 at 48
-running 4 at 49
-running 4 at 50
-running 4 at 51
-running 4 at 52
-running 4 at 53
-running 4 at 54
-running 4 at 55
-running 4 at 56
-running 3 at 56
-logging Stopped
-
-
-
 
 
 xv6 is a re-implementation of Dennis Ritchie's and Ken Thompson's Unix
