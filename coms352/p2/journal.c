@@ -1,4 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <stdbool.h>
 #include "journal.h"
 
 volatile int is_write_data_complete;
@@ -26,7 +30,7 @@ circular_buffer_t journal_commit_buffer;
 
 // Buffer functions
 void circ_buffer_add(circular_buffer_t *buffer, int write_id);
-void circ_buffer_remove(circular_buffer_t *buffer);
+int circ_buffer_remove(circular_buffer_t *buffer);
 
 // Threads
 static pthread_t journal_metadata_write_thread; 
@@ -58,7 +62,7 @@ void circ_buffer_add(circular_buffer_t *buffer, int write_id) {
 
         pthread_mutex_lock(&buffer->mutex);
 
-        buffer->buffer[buffer->in] = val;
+        buffer->buffer[buffer->in] = write_id;
         buffer->in = (buffer->in + 1) % BUFFER_SIZE;
         buffer->count++;
 
@@ -88,9 +92,7 @@ int circ_buffer_remove(circular_buffer_t *buffer) {
 
 void *journal_metadata_write_worker(void *arg) {
         while (1) {
-                int id = buffer_remove(&request_buffer);
-
-                issue_write_data(id);
+                int id = circ_buffer_remove(&request_buffer);
 
                 is_write_data_complete = 0;
                 is_journal_txb_complete = 0;
@@ -162,19 +164,19 @@ void init_journal() {
         // Create Thread 1
         if (pthread_create(&journal_metadata_write_thread, NULL, journal_metadata_write_worker, NULL) != 0) {
                 printf("Failed to create journal_metadata_write_thread");
-                return 1;
+                return;
         }
 
         // Create Thread 2
         if (pthread_create(&journal_commit_write_thread, NULL, journal_commit_write_worker, NULL) != 0) {
                 printf("Failed to create journal_commit_write_thread");
-                return 1;
+                return;
         }
 
         // Create Thread 3
         if (pthread_create(&checkpoint_metadata_thread, NULL, checkpoint_metadata_worker, NULL) != 0) {
                 printf("Failed to create checkpoint_metadata_thread");
-                return 1;
+                return;
         }
 }
 
@@ -182,24 +184,10 @@ void init_journal() {
 
 
 
-
-/* This function is called by the file system to request writing data to
- * persistent storage.
- *
- * This simple version does not correctly deal with concurrency. It issues
- * all writes in the correct order, but it assumes issued writes always
- * complete immediately and therefore, it doesn't wait for each phase    
- * to complete.
- */
 void request_write(int write_id) {
         circ_buffer_add(&request_buffer, write_id);
 }
 
-
-/* This function is called by the block service when writing the txb block
- * to persistent storage is complete (e.g., it is physically written to  
- * disk).
- */
 
 void write_data_complete(int write_id) {
         is_write_data_complete = 1;
