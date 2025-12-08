@@ -12,46 +12,39 @@ typedef struct {
         sem_t lock;
 } circular_buffer_t;
 
-void circ_buf_init(*circular_buffer_t buf);
-void add(*circular_buffer_t buf, int item)
-int remove(*circular_buffer_t buf)
+void circ_buf_init(circular_buffer_t *buf);
+void circ_buf_add(circular_buffer_t *buf, int item);
+int circ_buf_remove(circular_buffer_t *buf);
 
-void circ_buf_init(*circular_buffer_t buf) {
-        int in = 0;
-        int out = 0;
-        int count = 0;
-        sem_init(&empty, 0, BUFFER_SIZE);
-        sem_init(&full, 0, 0);
-        sem_init(&lock, 0, 0);
+void circ_buf_init(circular_buffer_t *buf) {
+        buf->in = 0;
+        buf->out = 0;
+        buf->count = 0;
+        sem_init(&buf->empty, 0, BUFFER_SIZE);
+        sem_init(&buf->full, 0, 0);
+        sem_init(&buf->lock, 0, 1);
 }
 
-void add(*circular_buffer_t buf, int item) {
-        sem_wait(buf->empty);
-        sem_wait(buf->lock);
-        buf->buffer[in] = item;
-        if (in == BUFFER_SIZE) {
-                in = 0;
-        } else {
-                in += 1;
-        }
-        count += 1;
-        sem_post(&lock);
-        sem_post(&full);
+void circ_buf_add(circular_buffer_t *buf, int item) {
+        sem_wait(&buf->empty);
+        sem_wait(&buf->lock);
+        buf->buffer[buf->in] = item;
+        buf->count++;
+        buf->in = (buf->in + 1) % BUFFER_SIZE;
+        sem_post(&buf->lock);
+        sem_post(&buf->full);
 }
 
-int remove(*circular_buffer_t buf) {
+int circ_buf_remove(circular_buffer_t *buf) {
         int val;
-        sem_wait(buf->full);
-        sem_wait(buf->lock);
-        val = buf->buffer[out];
-        if (out == BUFFER_SIZE) {
-                out = 0;
-        } else {
-                out += 1;
-        }
-        count -= 1;
-        sem_post(&lock);
-        sem_post(&empty);
+        sem_wait(&buf->full);
+        sem_wait(&buf->lock);
+        val = buf->buffer[buf->out];
+        buf->count --;
+        buf->out = (buf->out + 1) % BUFFER_SIZE;
+        sem_post(&buf->lock);
+        sem_post(&buf->empty);
+        return val;
 }
 
 int is_write_data_complete;
