@@ -26,6 +26,4 @@ void issue_journal_txe(int write_id);
 void issue_write_bitmap(int write_id);
 void issue_write_inode(int write_id);
 
-void journal_wait_for_all(void);
-
 #endif // JOURNAL_H
