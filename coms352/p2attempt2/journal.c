@@ -1,5 +1,58 @@
 #include <stdio.h>
+#include <semaphore.h>
 #include "journal.h"
+
+typedef struct {
+        int buffer[BUFFER_SIZE];
+        int in;
+        int out;
+        int count;
+        sem_t empty;
+        sem_t full;
+        sem_t lock;
+} circular_buffer_t;
+
+void circ_buf_init(*circular_buffer_t buf);
+void add(*circular_buffer_t buf, int item)
+int remove(*circular_buffer_t buf)
+
+void circ_buf_init(*circular_buffer_t buf) {
+        int in = 0;
+        int out = 0;
+        int count = 0;
+        sem_init(&empty, 0, BUFFER_SIZE);
+        sem_init(&full, 0, 0);
+        sem_init(&lock, 0, 0);
+}
+
+void add(*circular_buffer_t buf, int item) {
+        sem_wait(buf->empty);
+        sem_wait(buf->lock);
+        buf->buffer[in] = item;
+        if (in == BUFFER_SIZE) {
+                in = 0;
+        } else {
+                in += 1;
+        }
+        count += 1;
+        sem_post(&lock);
+        sem_post(&full);
+}
+
+int remove(*circular_buffer_t buf) {
+        int val;
+        sem_wait(buf->full);
+        sem_wait(buf->lock);
+        val = buf->buffer[out];
+        if (out == BUFFER_SIZE) {
+                out = 0;
+        } else {
+                out += 1;
+        }
+        count -= 1;
+        sem_post(&lock);
+        sem_post(&empty);
+}
 
 int is_write_data_complete;
 int is_journal_txb_complete;
